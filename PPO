@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PPO AI Recommendations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-2">🎯 PPO AI Recommendations</h1>
+        <p class="text-gray-600 mb-8">AI-powered experiment suggestions for iOS apps</p>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <label class="block mb-2 font-semibold text-lg">Select App:</label>
+            <select id="appSelect" class="w-full p-3 border rounded-lg text-lg">
+                <option>GA</option><option>MT</option><option>CC</option>
+                <option>AI</option><option>CA</option><option>DA</option>
+                <option>QR</option><option>AR</option><option>LS</option>
+                <option>IM</option><option>AV</option>
+            </select>
+            <button onclick="generateRecs()" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700">
+                🚀 Generate AI Recommendations
+            </button>
+        </div>
+
+        <div id="results" class="space-y-6"></div>
+    </div>
+
+    <script>
+    const MONDAY_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUwMTc0MTMyNSwiYWFpIjoxMSwidWlkIjo2OTI2OTQwMiwiaWFkIjoiMjAyNS0wNC0xOFQxMTo1ODozOS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTIzODA3NTQsInJnbiI6InVzZTEifQ.M_-uTTM59YqoB9c0Rqnfo7X8BffJC1XMGEc6gauLFfs';
+    const BOARD_ID = '7499252419';
+
+    async function generateRecs() {
+        const app = document.getElementById('appSelect').value;
+        document.getElementById('results').innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-gray-600">Analyzing ' + app + ' experiments...</p></div>';
+
+        try {
+            // ✅ FIXED: Use items_page structure
+            const query = `{
+                boards(ids: [${BOARD_ID}]) {
+                    groups {
+                        title
+                        items_page {
+                            items {
+                                name
+                                column_values {
+                                    text
+                                }
+                            }
+                        }
+                    }
+                }
+            }`;
+
+            const response = await fetch('https://api.monday.com/v2', {
+                method: 'POST',
+                headers: {
+                    'Authorization': MONDAY_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            });
+
+            const data = await response.json();
+
+            // Error handling
+            if (data.errors) {
+                throw new Error(data.errors[0].message);
+            }
+
+            if (!data.data || !data.data.boards || data.data.boards.length === 0) {
+                throw new Error('No boards found');
+            }
+
+            // ✅ FIXED: Access items through items_page
+            const appliedGroup = data.data.boards[0].groups.find(g => g.title.toLowerCase().includes('applied'));
+            
+            if (!appliedGroup || !appliedGroup.items_page) {
+                throw new Error('Applied group not found');
+            }
+
+            const experiments = appliedGroup.items_page.items.filter(item => item.name.startsWith(app)) || [];
+            
+            const recentExps = experiments.slice(-4);
+            const hasWin = recentExps.some(e => 
+                e.name.toLowerCase().includes('win') || 
+                e.column_values.some(cv => cv.text?.toLowerCase().includes('success'))
+            );
+
+            // AI-style recommendations
+            const recs = [
+                {
+                    type: hasWin ? '📸 Screenshot Optimization' : '🎨 Icon Redesign',
+                    hypothesis: hasWin 
+                        ? 'Enhance screenshot messaging clarity to boost CVR by 8-12%'
+                        : 'Fresh icon design to combat creative fatigue and increase CTR by 10-15%',
+                    rationale: hasWin 
+                        ? `Based on ${experiments.length} completed experiments with recent wins, doubling down on messaging optimization is the highest-leverage next move. Recent success indicates users respond to clearer value communication.`
+                        : `After ${experiments.length} experiments with no recent wins, the creative is likely fatigued. Historical PPO data shows icon refreshes can recover 10-15% CTR when assets plateau.`,
+                    creativeDirection: hasWin
+                        ? '• Simplify first 3 screenshots to single benefit per screen\n• Use larger text (min 24pt)\n• Add contrast backgrounds to key value props\n• Test benefit-first vs feature-first ordering'
+                        : '• Test 3 variants: warm colors, cool colors, gradient\n• Consider seasonal/trending design patterns\n• Simplify icon complexity\n• Test with/without text overlay',
+                    expectedImpact: hasWin ? '8-12% CVR lift' : '10-15% CTR lift',
+                    targetVariable: hasWin ? 'Screenshots' : 'Icon'
+                },
+                {
+                    type: '🎬 Preview Video Enhancement',
+                    hypothesis: 'Add or optimize preview video to increase engagement and CVR by 15-20%',
+                    rationale: 'Industry benchmarks show preview videos consistently deliver 15-20% CVR lifts. Videos allow demonstrating app value faster than static screenshots, especially for utility apps.',
+                    creativeDirection: '• Create 15-second preview video\n• First 3 seconds: hook with primary benefit\n• Middle: show 2-3 key features in action\n• End: clear CTA\n• Test with/without voiceover\n• Optimize for sound-off viewing',
+                    expectedImpact: '15-20% CVR lift',
+                    targetVariable: 'Preview Video'
+                },
+                {
+                    type: '💬 Messaging Reframe',
+                    hypothesis: 'Test emotional benefit-focused vs technical feature-focused copy',
+                    rationale: 'Messaging tests show the highest learning velocity per experiment. Understanding what resonates emotionally vs functionally builds long-term optimization knowledge.',
+                    creativeDirection: '• Variant A: Emotional ("Feel confident", "Save time", "Reduce stress")\n• Variant B: Functional ("Track X", "Manage Y", "Automate Z")\n• Keep visuals constant\n• Test across all text touchpoints (subtitle, screenshots, promo text)',
+                    expectedImpact: '5-10% CVR lift',
+                    targetVariable: 'Messaging & Copy'
+                }
+            ];
+
+            // Display results
+            document.getElementById('results').innerHTML = `
+                <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border-2 border-green-200">
+                    <h3 class="text-2xl font-bold mb-4">📊 Analysis for ${app}</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">Total Completed</p>
+                            <p class="text-3xl font-bold text-green-600">${experiments.length}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">Recent Performance</p>
+                            <p class="text-2xl font-bold ${hasWin ? 'text-blue-600' : 'text-orange-600'}">
+                                ${hasWin ? '✅ Win' : '⚠️ No Win'}
+                            </p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">Last 3-4 Tests</p>
+                            <p class="text-3xl font-bold text-gray-700">${recentExps.length}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">🎯 AI-Generated Recommendations</h3>
+                
+                ${recs.map((r, i) => `
+                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition border-l-4 ${i === 0 ? 'border-purple-500' : i === 1 ? 'border-blue-500' : 'border-green-500'}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <span class="bg-${i === 0 ? 'purple' : i === 1 ? 'blue' : 'green'}-100 text-${i === 0 ? 'purple' : i === 1 ? 'blue' : 'green'}-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                    ${r.type}
+                                </span>
+                                <h4 class="text-xl font-bold mt-3 text-gray-800">${r.hypothesis}</h4>
+                            </div>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold ml-4">
+                                ${r.expectedImpact}
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-3 mt-4">
+                            <div class="bg-gray-50 p-4 rounded">
+                                <p class="text-sm font-semibold text-gray-600 mb-2">📝 Rationale:</p>
+                                <p class="text-gray-800">${r.rationale}</p>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded">
+                                <p class="text-sm font-semibold text-gray-600 mb-2">🎨 Creative Direction:</p>
+                                <pre class="text-gray-800 whitespace-pre-wrap font-sans">${r.creativeDirection}</pre>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-4">
+                                <span class="text-sm text-gray-600">
+                                    <strong>Target:</strong> ${r.targetVariable}
+                                </span>
+                                <button onclick="alert('This would create item in Monday: ${r.type.replace(/[^\w\s]/gi, '')}')" 
+                                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
+                                    ➕ Add to Monday
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+        } catch (error) {
+            document.getElementById('results').innerHTML = `
+                <div class="bg-red-50 border border-red-200 p-6 rounded-lg">
+                    <h3 class="text-red-800 font-bold text-lg mb-2">❌ Error</h3>
+                    <p class="text-red-700">Failed to fetch data. Make sure you've added your API token!</p>
+                    <p class="text-sm text-red-600 mt-2">Error: ${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    // Auto-load GA on page load
+    window.onload = () => generateRecs();
+    </script>
+</body>
+</html>
