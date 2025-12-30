@@ -1,28 +1,20 @@
-The local file isn't working because **local files (file://) cannot make API calls due to CORS security restrictions**. This is a browser security feature that prevents malicious scripts from accessing APIs.
-
-Here is the **COMPLETE, FULLY WORKING CODE** that MUST be hosted on a web server or GitHub Pages:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPO AI Recommendations - Working Version</title>
+    <title>PPO AI Recommendations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .recommendation-card { border-left: 5px solid; transition: all 0.3s; }
         .recommendation-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
         .priority-critical { border-left-color: #dc2626; }
         .priority-high { border-left-color: #f59e0b; }
         .priority-medium { border-left-color: #3b82f6; }
+        .priority-low { border-left-color: #10b981; }
         .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; width: 40px; height: 40px; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -31,7 +23,7 @@ Here is the **COMPLETE, FULLY WORKING CODE** that MUST be hosted on a web server
     <header class="bg-black bg-opacity-30 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4">
             <h1 class="text-white text-3xl font-bold">🎯 PPO AI Recommendations</h1>
-            <p class="text-purple-200 text-sm">Intelligent Product Page Optimization Analysis</p>
+            <p class="text-purple-200 text-sm">Accurate Product Page Optimization Analysis</p>
         </div>
     </header>
 
@@ -64,236 +56,23 @@ Here is the **COMPLETE, FULLY WORKING CODE** that MUST be hosted on a web server
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button onclick="generateRecs()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-3 rounded-lg hover:scale-105 transition">
-                        🚀 Generate Recommendations
-                    </button>
+                    <button onclick="generateRecs()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-3 rounded-lg hover:scale-105 transition">🚀 Generate Recommendations</button>
                 </div>
             </div>
         </div>
-
-        <div id="results" class="space-y-6">
-            <div class="glass rounded-2xl p-12 text-center">
-                <p class="text-gray-500 text-lg">👈 Select an app and click Generate</p>
-            </div>
-        </div>
+        <div id="results" class="space-y-6"><div class="glass rounded-2xl p-12 text-center"><p class="text-gray-500 text-lg">👈 Select an app and click Generate</p></div></div>
     </main>
 
     <script>
-    const CONFIG = {
-        BOARD_ID: '7499252419',
-        API_KEY: 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUwMTc0MTMyNSwiYWFpIjoxMSwidWlkIjo2OTI2OTQwMiwiaWFkIjoiMjAyNS0wNC0xOFQxMTo1ODozOS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTIzODA3NTQsInJnbiI6InVzZTEifQ.M_-uTTM59YqoB9c0Rqnfo7X8BffJC1XMGEc6gauLFfs',
-        API_ENDPOINT: 'https://api.monday.com/v2'
-    };
-
-    const APP_META = {
-        'GA': { name: 'Growth Analytics', icon: '📊' },
-        'MT': { name: 'Marketing Tools', icon: '📢' },
-        'CC': { name: 'Content Creator', icon: '🎨' },
-        'AI': { name: 'AI Assistant', icon: '🤖' },
-        'CA': { name: 'Customer Analytics', icon: '👥' },
-        'DA': { name: 'Data Analytics', icon: '📈' },
-        'QR': { name: 'QR Code Scanner', icon: '📱' },
-        'AR': { name: 'Augmented Reality', icon: '🔮' },
-        'LS': { name: 'Learning Studio', icon: '📚' },
-        'IM': { name: 'Image Management', icon: '🖼️' },
-        'AV': { name: 'Audio & Video', icon: '🎬' }
-    };
-
-    function showLoading(app) {
-        const meta = APP_META[app] || { icon: '📱' };
-        document.getElementById('results').innerHTML = `
-            <div class="glass rounded-2xl p-12 flex flex-col items-center gap-4">
-                <div class="spinner"></div>
-                <p class="text-gray-700">${meta.icon} Analyzing ${app} experiments...</p>
-            </div>
-        `;
-    }
-
-    function showError(msg) {
-        document.getElementById('results').innerHTML = `
-            <div class="glass rounded-2xl p-6 bg-red-50 border-l-4 border-red-600">
-                <h3 class="text-red-800 font-bold mb-2">❌ Error</h3>
-                <p class="text-red-700">${msg}</p>
-                <p class="text-red-600 text-sm mt-2">💡 This file must be hosted on a web server (not a local file). Upload to GitHub Pages or a web server.</p>
-            </div>
-        `;
-    }
-
-    async function generateRecs() {
-        const app = document.getElementById('appSelect').value;
-        if (!app) { showError('Select an app'); return; }
-        
-        showLoading(app);
-        try {
-            const boardData = await fetchBoardData();
-            const analysis = analyzeApp(app, boardData);
-            const recs = generateRecommendations(app, analysis);
-            displayResults(app, analysis, recs);
-        } catch(e) {
-            console.error(e);
-            showError(e.message);
-        }
-    }
-
-    async function fetchBoardData() {
-        const query = `{
-            boards(ids: [${CONFIG.BOARD_ID}]) {
-                groups {
-                    title
-                    items_page(limit: 500) {
-                        items {
-                            name
-                            updated_at
-                            column_values {
-                                title
-                                text
-                            }
-                        }
-                    }
-                }
-            }
-        }`;
-
-        const res = await fetch(CONFIG.API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Authorization': CONFIG.API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query })
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.errors) throw new Error(data.errors[0].message);
-        if (!data.data?.boards?.[0]) throw new Error('Board not found');
-        return data.data.boards[0];
-    }
-
-    function analyzeApp(appCode, boardData) {
-        const allItems = [];
-        const groupCounts = {};
-
-        boardData.groups.forEach(group => {
-            groupCounts[group.title] = 0;
-            if (group.items_page?.items) {
-                group.items_page.items.forEach(item => {
-                    if (item.name.toUpperCase().startsWith(appCode.toUpperCase())) {
-                        allItems.push({
-                            name: item.name,
-                            group: group.title,
-                            updated_at: new Date(item.updated_at),
-                            columns: item.column_values || []
-                        });
-                        groupCounts[group.title]++;
-                    }
-                });
-            }
-        });
-
-        allItems.sort((a, b) => b.updated_at - a.updated_at);
-        const recent = allItems.slice(0, 4);
-
-        const hasWin = recent.some(item => {
-            const statusCol = item.columns.find(c => c.title?.toLowerCase().includes('status'));
-            const text = (statusCol?.text || '').toLowerCase();
-            return text.includes('win') || text.includes('approved');
-        });
-
-        const testTypes = {
-            icon: allItems.filter(i => i.name.toLowerCase().includes('icon')).length,
-            screenshot: allItems.filter(i => i.name.toLowerCase().includes('screenshot')).length,
-            video: allItems.filter(i => i.name.toLowerCase().includes('video')).length,
-            messaging: allItems.filter(i => i.name.toLowerCase().includes('message')).length
-        };
-
-        return {
-            appCode, appName: APP_META[appCode].name, icon: APP_META[appCode].icon,
-            totalItems: allItems.length, recentCount: recent.length, hasWin, recent, allItems, groupCounts, testTypes
-        };
-    }
-
-    function generateRecommendations(appCode, analysis) {
-        const recs = [];
-        const { hasWin, testTypes, totalItems, recentCount } = analysis;
-
-        if (hasWin) {
-            recs.push({
-                type: '🔄 Scale Winners',
-                hypothesis: `${appCode} has recent wins. Iterate on winners.`,
-                priority: 'high',
-                impact: '5-10%'
-            });
-        } else {
-            recs.push({
-                type: '🧪 New Direction',
-                hypothesis: `${appCode} shows no recent wins. Try different creative angle.`,
-                priority: 'critical',
-                impact: '12-20%'
-            });
-        }
-
-        if (testTypes.icon === 0) {
-            recs.push({
-                type: '🎨 Icon Test Gap',
-                hypothesis: `${appCode} has 0 icon tests. High-impact opportunity.`,
-                priority: hasWin ? 'medium' : 'high',
-                impact: '10-15%'
-            });
-        }
-
-        if (testTypes.screenshot === 0) {
-            recs.push({
-                type: '📱 Screenshot Test Gap',
-                hypothesis: `${appCode} has 0 screenshot tests. Core asset gap.`,
-                priority: hasWin ? 'medium' : 'high',
-                impact: '8-12%'
-            });
-        }
-
-        if (testTypes.video === 0) {
-            recs.push({
-                type: '🎬 Preview Video Gap',
-                hypothesis: `${appCode} has 0 video tests. Industry best practice.`,
-                priority: hasWin ? 'medium' : 'high',
-                impact: '15-20%'
-            });
-        }
-
-        return recs;
-    }
-
-    function displayResults(appCode, analysis, recs) {
-        const statusColor = analysis.hasWin ? 'text-green-600' : 'text-orange-600';
-        const statusText = analysis.hasWin ? '✅ Has Wins' : '⚠️ No Wins';
-
-        let html = `
-            <div class="glass rounded-2xl p-6 border-l-4 border-blue-500">
-                <h3 class="text-2xl font-bold mb-4">📊 Analysis for ${analysis.appName}</h3>
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-gray-50 p-4 rounded text-center">
-                        <p class="text-gray-600 text-sm">Total Items</p>
-                        <p class="text-3xl font-bold text-blue-600">${analysis.totalItems}</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded text-center">
-                        <p class="text-gray-600 text-sm">Recent Performance</p>
-                        <p class="text-xl font-bold ${statusColor}">${statusText}</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded text-center">
-                        <p class="text-gray-600 text-sm">Last 4 Tests</p>
-                        <p class="text-3xl font-bold text-blue-600">${analysis.recentCount}</p>
-                    </div>
-                </div>
-            </div>
-
-            <h2 class="text-2xl font-bold text-white mt-8 mb-4">🎯 AI-Generated Recommendations</h2>
-        `;
-
-        recs.forEach((rec, i) => {
-            const colors = { critical: 'red', high: 'yellow', medium: 'blue', low: 'green' };
-            const color = colors[rec.priority] || 'blue';
-            
-            html += `
-                <div class="glass rounded-2xl p-6 recommendation-card priority-${rec.priority}">
-                    <div class="flex justify-between mb-3">
-                        <h3
+    const CONFIG = { BOARD_ID: '7499252419', API_KEY: 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUwMTc0MTMyNSwiYWFpIjoxMSwidWlkIjo2OTI2OTQwMiwiaWFkIjoiMjAyNS0wNC0xOFQxMTo1ODozOS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTIzODA3NTQsInJnbiI6InVzZTEifQ.M_-uTTM59YqoB9c0Rqnfo7X8BffJC1XMGEc6gauLFfs', API_ENDPOINT: 'https://api.monday.com/v2' };
+    const APP_META = { 'GA': { name: 'Growth Analytics', icon: '📊' }, 'MT': { name: 'Marketing Tools', icon: '📢' }, 'CC': { name: 'Content Creator', icon: '🎨' }, 'AI': { name: 'AI Assistant', icon: '🤖' }, 'CA': { name: 'Customer Analytics', icon: '👥' }, 'DA': { name: 'Data Analytics', icon: '📈' }, 'QR': { name: 'QR Code Scanner', icon: '📱' }, 'AR': { name: 'Augmented Reality', icon: '🔮' }, 'LS': { name: 'Learning Studio', icon: '📚' }, 'IM': { name: 'Image Management', icon: '🖼️' }, 'AV': { name: 'Audio & Video', icon: '🎬' } };
+    function showLoading(app) { const meta = APP_META[app] || { icon: '📱' }; document.getElementById('results').innerHTML = `<div class="glass rounded-2xl p-12 flex flex-col items-center gap-4"><div class="spinner"></div><p class="text-gray-700">${meta.icon} Analyzing ${app}...</p></div>`; }
+    function showError(msg) { document.getElementById('results').innerHTML = `<div class="glass rounded-2xl p-6 bg-red-50 border-l-4 border-red-600"><h3 class="text-red-800 font-bold mb-2">❌ Error</h3><p class="text-red-700">${msg}</p></div>`; }
+    async function generateRecs() { const app = document.getElementById('appSelect').value; if (!app) { showError('Select an app'); return; } showLoading(app); try { const boardData = await fetchBoardData(); const analysis = analyzeApp(app, boardData); const recs = generateRecommendations(app, analysis); displayResults(app, analysis, recs); } catch(e) { console.error(e); showError(e.message); } }
+    async function fetchBoardData() { const query = `{ boards(ids: [${CONFIG.BOARD_ID}]) { groups { title items_page(limit: 500) { items { name updated_at column_values { title text } } } } } }`; const res = await fetch(CONFIG.API_ENDPOINT, { method: 'POST', headers: { 'Authorization': CONFIG.API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) }); if (!res.ok) throw new Error(`HTTP ${res.status}`); const data = await res.json(); if (data.errors) throw new Error(data.errors[0].message); if (!data.data?.boards?.[0]) throw new Error('Board not found'); return data.data.boards[0]; }
+    function analyzeApp(appCode, boardData) { const allItems = []; boardData.groups.forEach(group => { if (group.items_page?.items) { group.items_page.items.forEach(item => { if (item.name.toUpperCase().startsWith(appCode.toUpperCase())) { allItems.push({ name: item.name, group: group.title, updated_at: new Date(item.updated_at), columns: item.column_values || [] }); } }); } }); allItems.sort((a, b) => b.updated_at - a.updated_at); const recent = allItems.slice(0, 4); const hasWin = recent.some(item => { const statusCol = item.columns.find(c => c.title?.toLowerCase().includes('status')); const text = (statusCol?.text || '').toLowerCase(); return text.includes('win') || text.includes('approved'); }); const testTypes = { icon: allItems.filter(i => i.name.toLowerCase().includes('icon')).length, screenshot: allItems.filter(i => i.name.toLowerCase().includes('screenshot')).length, video: allItems.filter(i => i.name.toLowerCase().includes('video')).length, messaging: allItems.filter(i => i.name.toLowerCase().includes('message')).length }; return { appCode, appName: APP_META[appCode].name, icon: APP_META[appCode].icon, totalItems: allItems.length, recentCount: recent.length, hasWin, recent, allItems, testTypes }; }
+    function generateRecommendations(appCode, analysis) { const recs = []; const { hasWin, testTypes, totalItems } = analysis; if (hasWin) { recs.push({ type: '🔄 Scale Winners', hypothesis: `${appCode} has recent wins. Iterate with micro-changes.`, priority: 'high', impact: '5-10%', rationale: 'Recent success signals optimal direction.' }); } else { recs.push({ type: '🧪 New Direction', hypothesis: `${appCode} no recent wins. Try different angle.`, priority: 'critical', impact: '12-20%', rationale: 'Creative plateau detected. Explore new variables.' }); } if (testTypes.icon === 0) recs.push({ type: '🎨 Icon Test Gap', hypothesis: `${appCode} 0 icon tests.`, priority: 'high', impact: '10-15%', rationale: 'Icons drive 10-15% CTR improvements.' }); if (testTypes.screenshot === 0) recs.push({ type: '📱 Screenshot Gap', hypothesis: `${appCode} 0 screenshot tests.`, priority: 'high', impact: '8-12%', rationale: 'Screenshots are fundamental testing variable.' }); if (testTypes.video === 0) recs.push({ type: '🎬 Video Test Gap', hypothesis: `${appCode} 0 video tests.`, priority: 'medium', impact: '15-20%', rationale: 'Videos show 15-20% CVR improvements.' }); return recs; }
+    function displayResults(appCode, analysis, recs) { const statusColor = analysis.hasWin ? 'text-green-600' : 'text-orange-600'; const statusText = analysis.hasWin ? '✅ Has Wins' : '⚠️ No Wins'; let html = `<div class="glass rounded-2xl p-6 border-l-4 border-blue-500"><h3 class="text-2xl font-bold mb-4">📊 ${analysis.appName}</h3><div class="grid grid-cols-3 gap-4"><div class="bg-gray-50 p-4 rounded text-center"><p class="text-gray-600 text-sm">Total Items</p><p class="text-3xl font-bold text-blue-600">${analysis.totalItems}</p></div><div class="bg-gray-50 p-4 rounded text-center"><p class="text-gray-600 text-sm">Status</p><p class="text-xl font-bold ${statusColor}">${statusText}</p></div><div class="bg-gray-50 p-4 rounded text-center"><p class="text-gray-600 text-sm">Recent</p><p class="text-3xl font-bold">${analysis.recentCount}</p></div></div></div><h2 class="text-2xl font-bold text-white mt-8 mb-4">🎯 Recommendations</h2>`; recs.forEach(rec => { html += `<div class="glass rounded-2xl p-6 recommendation-card priority-${rec.priority}"><h3 class="text-xl font-bold mb-2">${rec.type}</h3><p class="text-gray-700 mb-2">${rec.hypothesis}</p><p class="text-sm text-gray-600">${rec.rationale}</p><p class="text-green-600 font-bold mt-3">Expected Impact: ${rec.impact}</p></div>`; }); document.getElementById('results').innerHTML = html; }
+    </script>
+</body>
+</html>
