@@ -1,201 +1,281 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PPO AI Recommendations</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPO AI Recommendations - FIXED</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .recommendation-card { border-left: 5px solid; transition: all 0.3s ease; }
+        .recommendation-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+        .priority-critical { border-left-color: #dc2626; background: rgba(220, 38, 38, 0.02); }
+        .priority-high { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.02); }
+        .priority-medium { border-left-color: #3b82f6; background: rgba(59, 130, 246, 0.02); }
+        .priority-low { border-left-color: #10b981; background: rgba(16, 185, 129, 0.02); }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="bg-gray-50 p-8">
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-4xl font-bold mb-2">🎯 PPO AI Recommendations</h1>
-        <p class="text-gray-600 mb-8">AI-powered experiment suggestions for iOS apps</p>
-        
-        <div class="bg-white p-6 rounded-lg shadow mb-6">
-            <label class="block mb-2 font-semibold text-lg">Select App:</label>
-            <select id="appSelect" class="w-full p-3 border rounded-lg text-lg">
-                <option>GA</option><option>MT</option><option>CC</option>
-                <option>AI</option><option>CA</option><option>DA</option>
-                <option>QR</option><option>AR</option><option>LS</option>
-                <option>IM</option><option>AV</option>
-            </select>
-            <button onclick="generateRecs()" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700">
-                🚀 Generate AI Recommendations
-            </button>
+<body>
+    <header class="bg-black bg-opacity-30 backdrop-blur-md border-b border-white border-opacity-20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-4xl">🎯</span>
+                    <div>
+                        <h1 class="text-white text-3xl font-bold">PPO AI Recommendations (FIXED)</h1>
+                        <p class="text-purple-200 text-sm">Accurate Product Page Optimization Analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="glass rounded-2xl p-8 mb-8 shadow-2xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">⚙️ Configuration</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3">📱 Select App</label>
+                    <select id="appSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition bg-white">
+                        <option value="">-- Choose an App --</option>
+                        <option value="GA">GA - Growth Analytics</option>
+                        <option value="MT">MT - Marketing Tools</option>
+                        <option value="CC">CC - Content Creator</option>
+                        <option value="AI">AI - AI Assistant</option>
+                        <option value="CA">CA - Customer Analytics</option>
+                        <option value="DA">DA - Data Analytics</option>
+                        <option value="QR">QR - QR Code Scanner</option>
+                        <option value="AR">AR - Augmented Reality</option>
+                        <option value="LS">LS - Learning Studio</option>
+                        <option value="IM">IM - Image Management</option>
+                        <option value="AV">AV - Audio & Video</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="generateRecs()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                        🚀 Generate Recommendations
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>Connected to Monday.com • Real-time Data</span>
+            </div>
         </div>
 
-        <div id="results" class="space-y-6"></div>
-    </div>
+        <div id="results" class="space-y-6 min-h-96">
+            <div class="glass rounded-2xl p-12 text-center">
+                <p class="text-gray-500 text-lg">👈 Select an app and click Generate to start</p>
+            </div>
+        </div>
+    </main>
 
     <script>
-    const MONDAY_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUwMTc0MTMyNSwiYWFpIjoxMSwidWlkIjo2OTI2OTQwMiwiaWFkIjoiMjAyNS0wNC0xOFQxMTo1ODozOS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTIzODA3NTQsInJnbiI6InVzZTEifQ.M_-uTTM59YqoB9c0Rqnfo7X8BffJC1XMGEc6gauLFfs';
-    const BOARD_ID = '7499252419';
+    const CONFIG = {
+        BOARD_ID: '7499252419',
+        API_KEY: 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUwMTc0MTMyNSwiYWFpIjoxMSwidWlkIjo2OTI2OTQwMiwiaWFkIjoiMjAyNS0wNC0xOFQxMTo1ODozOS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTIzODA3NTQsInJnbiI6InVzZTEifQ.M_-uTTM59YqoB9c0Rqnfo7X8BffJC1XMGEc6gauLFfs',
+        API_ENDPOINT: 'https://api.monday.com/v2'
+    };
+
+    const APP_META = {
+        'GA': { name: 'Growth Analytics', icon: '📊' },
+        'MT': { name: 'Marketing Tools', icon: '📢' },
+        'CC': { name: 'Content Creator', icon: '🎨' },
+        'AI': { name: 'AI Assistant', icon: '🤖' },
+        'CA': { name: 'Customer Analytics', icon: '👥' },
+        'DA': { name: 'Data Analytics', icon: '📈' },
+        'QR': { name: 'QR Code Scanner', icon: '📱' },
+        'AR': { name: 'Augmented Reality', icon: '🔮' },
+        'LS': { name: 'Learning Studio', icon: '📚' },
+        'IM': { name: 'Image Management', icon: '🖼️' },
+        'AV': { name: 'Audio & Video', icon: '🎬' }
+    };
 
     async function generateRecs() {
         const app = document.getElementById('appSelect').value;
-        document.getElementById('results').innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-gray-600">Analyzing ' + app + ' experiments...</p></div>';
-
+        if (!app) {
+            showError('Please select an app first');
+            return;
+        }
+        showLoading(app);
         try {
-            // ✅ FIXED: Use items_page structure
-            const query = `{
-                boards(ids: [${BOARD_ID}]) {
-                    groups {
-                        title
-                        items_page {
-                            items {
-                                name
-                                column_values {
-                                    text
-                                }
+            const boardData = await fetchBoardData();
+            const analysis = analyzeApp(app, boardData);
+            const recommendations = generateRecommendations(app, analysis);
+            displayResults(app, analysis, recommendations);
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+        }
+    }
+
+    async function fetchBoardData() {
+        const query = `{
+            boards(ids: [${CONFIG.BOARD_ID}]) {
+                groups {
+                    title
+                    items_page(limit: 500) {
+                        items {
+                            name
+                            updated_at
+                            column_values {
+                                title
+                                text
                             }
                         }
                     }
                 }
-            }`;
-
-            const response = await fetch('https://api.monday.com/v2', {
-                method: 'POST',
-                headers: {
-                    'Authorization': MONDAY_API_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ query })
-            });
-
-            const data = await response.json();
-
-            // Error handling
-            if (data.errors) {
-                throw new Error(data.errors[0].message);
             }
+        }`;
 
-            if (!data.data || !data.data.boards || data.data.boards.length === 0) {
-                throw new Error('No boards found');
-            }
+        const response = await fetch(CONFIG.API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Authorization': CONFIG.API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query })
+        });
 
-            // ✅ FIXED: Access items through items_page
-            const appliedGroup = data.data.boards[0].groups.find(g => g.title.toLowerCase().includes('applied'));
-            
-            if (!appliedGroup || !appliedGroup.items_page) {
-                throw new Error('Applied group not found');
-            }
-
-            const experiments = appliedGroup.items_page.items.filter(item => item.name.startsWith(app)) || [];
-            
-            const recentExps = experiments.slice(-4);
-            const hasWin = recentExps.some(e => 
-                e.name.toLowerCase().includes('win') || 
-                e.column_values.some(cv => cv.text?.toLowerCase().includes('success'))
-            );
-
-            // AI-style recommendations
-            const recs = [
-                {
-                    type: hasWin ? '📸 Screenshot Optimization' : '🎨 Icon Redesign',
-                    hypothesis: hasWin 
-                        ? 'Enhance screenshot messaging clarity to boost CVR by 8-12%'
-                        : 'Fresh icon design to combat creative fatigue and increase CTR by 10-15%',
-                    rationale: hasWin 
-                        ? `Based on ${experiments.length} completed experiments with recent wins, doubling down on messaging optimization is the highest-leverage next move. Recent success indicates users respond to clearer value communication.`
-                        : `After ${experiments.length} experiments with no recent wins, the creative is likely fatigued. Historical PPO data shows icon refreshes can recover 10-15% CTR when assets plateau.`,
-                    creativeDirection: hasWin
-                        ? '• Simplify first 3 screenshots to single benefit per screen\n• Use larger text (min 24pt)\n• Add contrast backgrounds to key value props\n• Test benefit-first vs feature-first ordering'
-                        : '• Test 3 variants: warm colors, cool colors, gradient\n• Consider seasonal/trending design patterns\n• Simplify icon complexity\n• Test with/without text overlay',
-                    expectedImpact: hasWin ? '8-12% CVR lift' : '10-15% CTR lift',
-                    targetVariable: hasWin ? 'Screenshots' : 'Icon'
-                },
-                {
-                    type: '🎬 Preview Video Enhancement',
-                    hypothesis: 'Add or optimize preview video to increase engagement and CVR by 15-20%',
-                    rationale: 'Industry benchmarks show preview videos consistently deliver 15-20% CVR lifts. Videos allow demonstrating app value faster than static screenshots, especially for utility apps.',
-                    creativeDirection: '• Create 15-second preview video\n• First 3 seconds: hook with primary benefit\n• Middle: show 2-3 key features in action\n• End: clear CTA\n• Test with/without voiceover\n• Optimize for sound-off viewing',
-                    expectedImpact: '15-20% CVR lift',
-                    targetVariable: 'Preview Video'
-                },
-                {
-                    type: '💬 Messaging Reframe',
-                    hypothesis: 'Test emotional benefit-focused vs technical feature-focused copy',
-                    rationale: 'Messaging tests show the highest learning velocity per experiment. Understanding what resonates emotionally vs functionally builds long-term optimization knowledge.',
-                    creativeDirection: '• Variant A: Emotional ("Feel confident", "Save time", "Reduce stress")\n• Variant B: Functional ("Track X", "Manage Y", "Automate Z")\n• Keep visuals constant\n• Test across all text touchpoints (subtitle, screenshots, promo text)',
-                    expectedImpact: '5-10% CVR lift',
-                    targetVariable: 'Messaging & Copy'
-                }
-            ];
-
-            // Display results
-            document.getElementById('results').innerHTML = `
-                <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border-2 border-green-200">
-                    <h3 class="text-2xl font-bold mb-4">📊 Analysis for ${app}</h3>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="bg-white p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Total Completed</p>
-                            <p class="text-3xl font-bold text-green-600">${experiments.length}</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Recent Performance</p>
-                            <p class="text-2xl font-bold ${hasWin ? 'text-blue-600' : 'text-orange-600'}">
-                                ${hasWin ? '✅ Win' : '⚠️ No Win'}
-                            </p>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Last 3-4 Tests</p>
-                            <p class="text-3xl font-bold text-gray-700">${recentExps.length}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <h3 class="text-2xl font-bold mt-8 mb-4">🎯 AI-Generated Recommendations</h3>
-                
-                ${recs.map((r, i) => `
-                    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition border-l-4 ${i === 0 ? 'border-purple-500' : i === 1 ? 'border-blue-500' : 'border-green-500'}">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex-1">
-                                <span class="bg-${i === 0 ? 'purple' : i === 1 ? 'blue' : 'green'}-100 text-${i === 0 ? 'purple' : i === 1 ? 'blue' : 'green'}-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                    ${r.type}
-                                </span>
-                                <h4 class="text-xl font-bold mt-3 text-gray-800">${r.hypothesis}</h4>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold ml-4">
-                                ${r.expectedImpact}
-                            </span>
-                        </div>
-                        
-                        <div class="space-y-3 mt-4">
-                            <div class="bg-gray-50 p-4 rounded">
-                                <p class="text-sm font-semibold text-gray-600 mb-2">📝 Rationale:</p>
-                                <p class="text-gray-800">${r.rationale}</p>
-                            </div>
-                            
-                            <div class="bg-blue-50 p-4 rounded">
-                                <p class="text-sm font-semibold text-gray-600 mb-2">🎨 Creative Direction:</p>
-                                <pre class="text-gray-800 whitespace-pre-wrap font-sans">${r.creativeDirection}</pre>
-                            </div>
-                            
-                            <div class="flex justify-between items-center mt-4">
-                                <span class="text-sm text-gray-600">
-                                    <strong>Target:</strong> ${r.targetVariable}
-                                </span>
-                                <button onclick="alert('This would create item in Monday: ${r.type.replace(/[^\w\s]/gi, '')}')" 
-                                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
-                                    ➕ Add to Monday
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-
-        } catch (error) {
-            document.getElementById('results').innerHTML = `
-                <div class="bg-red-50 border border-red-200 p-6 rounded-lg">
-                    <h3 class="text-red-800 font-bold text-lg mb-2">❌ Error</h3>
-                    <p class="text-red-700">Failed to fetch data. Make sure you've added your API token!</p>
-                    <p class="text-sm text-red-600 mt-2">Error: ${error.message}</p>
-                </div>
-            `;
-        }
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        const data = await response.json();
+        if (data.errors) throw new Error(data.errors[0].message);
+        if (!data.data?.boards?.[0]) throw new Error('Board not found');
+        return data.data.boards[0];
     }
 
-    // Auto-load GA on page load
-    window.onload = () => generateRecs();
-    </script>
-</body>
-</html>
+    function analyzeApp(appCode, boardData) {
+        const allItems = [];
+        const groupStats = {};
+
+        // FIX #1: Properly collect items and check Experiment Status column
+        boardData.groups.forEach(group => {
+            groupStats[group.title] = 0;
+            if (group.items_page?.items) {
+                group.items_page.items.forEach(item => {
+                    if (item.name.toUpperCase().startsWith(appCode.toUpperCase())) {
+                        allItems.push({
+                            name: item.name,
+                            group: group.title,
+                            updated_at: new Date(item.updated_at),
+                            columns: item.column_values || []
+                        });
+                        groupStats[group.title]++;
+                    }
+                });
+            }
+        });
+
+        allItems.sort((a, b) => b.updated_at - a.updated_at);
+        const recentItems = allItems.slice(0, 4);
+
+        // FIX #2: Check "Experiment Status" column, not item name
+        const hasWin = recentItems.some(item => {
+            const statusCol = item.columns.find(c => 
+                c.title && c.title.toLowerCase().includes('status')
+            );
+            const experimentStatusCol = item.columns.find(c =>
+                c.title && c.title.toLowerCase().includes('experiment')
+            );
+            const resultCol = item.columns.find(c =>
+                c.title && (c.title.toLowerCase().includes('result') || c.title.toLowerCase().includes('outcome'))
+            );
+
+            const statusText = (statusCol?.text || experimentStatusCol?.text || resultCol?.text || '').toLowerCase();
+            return statusText.includes('win') || statusText.includes('approved') || statusText.includes('success');
+        });
+
+        // Count test types from item names
+        const testTypes = {
+            icon: allItems.filter(i => i.name.toLowerCase().includes('icon')).length,
+            screenshot: allItems.filter(i => i.name.toLowerCase().includes('screenshot') || i.name.toLowerCase().includes('ss')).length,
+            video: allItems.filter(i => i.name.toLowerCase().includes('video') || i.name.toLowerCase().includes('preview')).length,
+            messaging: allItems.filter(i => i.name.toLowerCase().includes('message') || i.name.toLowerCase().includes('copy')).length
+        };
+
+        return {
+            appCode,
+            appName: APP_META[appCode].name,
+            totalItems: allItems.length,
+            recentCount: recentItems.length,
+            hasWin,
+            recentItems,
+            groupStats,
+            testTypes,
+            allItems
+        };
+    }
+
+    // FIX #3: Generate UNIQUE recommendations per app based on actual data
+    function generateRecommendations(appCode, analysis) {
+        const { testTypes, hasWin, allItems, recentItems } = analysis;
+        const recommendations = [];
+
+        if (hasWin) {
+            // UNIQUE for apps with wins: Scale winners
+            recommendations.push({
+                priority: 'high',
+                type: '🔄 Scale Recent Winners',
+                hypothesis: `${appCode} shows recent success (${analysis.recentCount} recent tests). Double down with micro-iterations.`,
+                rationale: `Recent test(s) demonstrate positive momentum. Refine winning elements rather than exploring completely new directions.`,
+                creativeDirection: [
+                    'Clone top performing variant',
+                    'Make micro-adjustments to copy/color/layout',
+                    'Test across different user segments',
+                    'Increase sample size for faster learning'
+                ],
+                expectedImpact: '5-10% incremental CVR lift',
+                effort: 'Low'
+            });
+        } else {
+            // UNIQUE for apps without wins: Explore new angles
+            recommendations.push({
+                priority: 'critical',
+                type: '🧪 Break Creative Plateau',
+                hypothesis: `${appCode} shows no recent wins across ${recentItems.length} recent tests. Current creative direction is saturated.`,
+                rationale: `With ${allItems.length} total experiments and no recent wins, testing fundamentally different approaches is necessary.`,
+                creativeDirection: [
+                    'Test opposite emotional angle (if currently feature-focused, go emotional)',
+                    'Reorder screenshot sequence completely',
+                    'Change icon style dramatically',
+                    'Test social proof angle if not explored'
+                ],
+                expectedImpact: '12-18% CVR lift potential',
+                effort: 'High'
+            });
+        }
+
+        // FIX #4: App-specific recommendations based on test type gaps
+        if (testTypes.icon === 0 && allItems.length > 0) {
+            recommendations.push({
+                priority: hasWin ? 'medium' : 'high',
+                type: '🎨 Icon Testing Gap',
+                hypothesis: `${appCode} has NO icon tests yet (${allItems.length} total tests). Icons are high-impact.`,
+                rationale: 'Icon tests are proven to drive 10-15% CTR improvements. This is a major testing gap.',
+                creativeDirection: [
+                    'Test 3 icon design directions',
+                    'Vary complexity level',
+                    'Test with/without text overlay',
+                    'Try trending vs timeless styles'
+                ],
+                expectedImpact: '10-15% CTR lift',
+                effort: 'Medium'
+            });
+        }
+
+        if (testTypes.video === 0 && allItems.length > 0) {
+            recommendations.push({
+                priority: hasWin ? 'medium' : 'high',
+                type: '🎬 Preview Video Gap',
+                hypothesis: `${appCode} has NO video tests. Videos drive 15-20% CVR lifts (industry benchmark).`,
+                rationale: 'Video is universally high-impact. Creating first video is highest ROI investment.',
+                creativeDirection:
+
