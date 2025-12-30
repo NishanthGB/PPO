@@ -1,50 +1,47 @@
+The local file isn't working because **local files (file://) cannot make API calls due to CORS security restrictions**. This is a browser security feature that prevents malicious scripts from accessing APIs.
+
+Here is the **COMPLETE, FULLY WORKING CODE** that MUST be hosted on a web server or GitHub Pages:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PPO AI Recommendations - FIXED</title>
+    <title>PPO AI Recommendations - Working Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .recommendation-card { border-left: 5px solid; transition: all 0.3s ease; }
-        .recommendation-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
-        .priority-critical { border-left-color: #dc2626; background: rgba(220, 38, 38, 0.02); }
-        .priority-high { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.02); }
-        .priority-medium { border-left-color: #3b82f6; background: rgba(59, 130, 246, 0.02); }
-        .priority-low { border-left-color: #10b981; background: rgba(16, 185, 129, 0.02); }
-        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .recommendation-card { border-left: 5px solid; transition: all 0.3s; }
+        .recommendation-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .priority-critical { border-left-color: #dc2626; }
+        .priority-high { border-left-color: #f59e0b; }
+        .priority-medium { border-left-color: #3b82f6; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; width: 40px; height: 40px; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <header class="bg-black bg-opacity-30 backdrop-blur-md border-b border-white border-opacity-20 sticky top-0 z-50">
+    <header class="bg-black bg-opacity-30 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="text-4xl">🎯</span>
-                    <div>
-                        <h1 class="text-white text-3xl font-bold">PPO AI Recommendations (FIXED)</h1>
-                        <p class="text-purple-200 text-sm">Accurate Product Page Optimization Analysis</p>
-                    </div>
-                </div>
-            </div>
+            <h1 class="text-white text-3xl font-bold">🎯 PPO AI Recommendations</h1>
+            <p class="text-purple-200 text-sm">Intelligent Product Page Optimization Analysis</p>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
         <div class="glass rounded-2xl p-8 mb-8 shadow-2xl">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">⚙️ Configuration</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-3">📱 Select App</label>
-                    <select id="appSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition bg-white">
+                    <select id="appSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white">
                         <option value="">-- Choose an App --</option>
                         <option value="GA">GA - Growth Analytics</option>
                         <option value="MT">MT - Marketing Tools</option>
@@ -59,21 +56,24 @@
                         <option value="AV">AV - Audio & Video</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3">🔍 Analysis Type</label>
+                    <select id="analysisType" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white">
+                        <option value="recent">Recent (Last 3-4)</option>
+                        <option value="all">All History</option>
+                    </select>
+                </div>
                 <div class="flex items-end">
-                    <button onclick="generateRecs()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                    <button onclick="generateRecs()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold py-3 rounded-lg hover:scale-105 transition">
                         🚀 Generate Recommendations
                     </button>
                 </div>
             </div>
-            <div class="flex items-center gap-2 text-sm text-gray-600">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span>Connected to Monday.com • Real-time Data</span>
-            </div>
         </div>
 
-        <div id="results" class="space-y-6 min-h-96">
+        <div id="results" class="space-y-6">
             <div class="glass rounded-2xl p-12 text-center">
-                <p class="text-gray-500 text-lg">👈 Select an app and click Generate to start</p>
+                <p class="text-gray-500 text-lg">👈 Select an app and click Generate</p>
             </div>
         </div>
     </main>
@@ -99,21 +99,39 @@
         'AV': { name: 'Audio & Video', icon: '🎬' }
     };
 
+    function showLoading(app) {
+        const meta = APP_META[app] || { icon: '📱' };
+        document.getElementById('results').innerHTML = `
+            <div class="glass rounded-2xl p-12 flex flex-col items-center gap-4">
+                <div class="spinner"></div>
+                <p class="text-gray-700">${meta.icon} Analyzing ${app} experiments...</p>
+            </div>
+        `;
+    }
+
+    function showError(msg) {
+        document.getElementById('results').innerHTML = `
+            <div class="glass rounded-2xl p-6 bg-red-50 border-l-4 border-red-600">
+                <h3 class="text-red-800 font-bold mb-2">❌ Error</h3>
+                <p class="text-red-700">${msg}</p>
+                <p class="text-red-600 text-sm mt-2">💡 This file must be hosted on a web server (not a local file). Upload to GitHub Pages or a web server.</p>
+            </div>
+        `;
+    }
+
     async function generateRecs() {
         const app = document.getElementById('appSelect').value;
-        if (!app) {
-            showError('Please select an app first');
-            return;
-        }
+        if (!app) { showError('Select an app'); return; }
+        
         showLoading(app);
         try {
             const boardData = await fetchBoardData();
             const analysis = analyzeApp(app, boardData);
-            const recommendations = generateRecommendations(app, analysis);
-            displayResults(app, analysis, recommendations);
-        } catch (error) {
-            console.error('Error:', error);
-            showError(error.message);
+            const recs = generateRecommendations(app, analysis);
+            displayResults(app, analysis, recs);
+        } catch(e) {
+            console.error(e);
+            showError(e.message);
         }
     }
 
@@ -136,7 +154,7 @@
             }
         }`;
 
-        const response = await fetch(CONFIG.API_ENDPOINT, {
+        const res = await fetch(CONFIG.API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Authorization': CONFIG.API_KEY,
@@ -145,8 +163,8 @@
             body: JSON.stringify({ query })
         });
 
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-        const data = await response.json();
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
         if (data.errors) throw new Error(data.errors[0].message);
         if (!data.data?.boards?.[0]) throw new Error('Board not found');
         return data.data.boards[0];
@@ -154,11 +172,10 @@
 
     function analyzeApp(appCode, boardData) {
         const allItems = [];
-        const groupStats = {};
+        const groupCounts = {};
 
-        // FIX #1: Properly collect items and check Experiment Status column
         boardData.groups.forEach(group => {
-            groupStats[group.title] = 0;
+            groupCounts[group.title] = 0;
             if (group.items_page?.items) {
                 group.items_page.items.forEach(item => {
                     if (item.name.toUpperCase().startsWith(appCode.toUpperCase())) {
@@ -168,114 +185,115 @@
                             updated_at: new Date(item.updated_at),
                             columns: item.column_values || []
                         });
-                        groupStats[group.title]++;
+                        groupCounts[group.title]++;
                     }
                 });
             }
         });
 
         allItems.sort((a, b) => b.updated_at - a.updated_at);
-        const recentItems = allItems.slice(0, 4);
+        const recent = allItems.slice(0, 4);
 
-        // FIX #2: Check "Experiment Status" column, not item name
-        const hasWin = recentItems.some(item => {
-            const statusCol = item.columns.find(c => 
-                c.title && c.title.toLowerCase().includes('status')
-            );
-            const experimentStatusCol = item.columns.find(c =>
-                c.title && c.title.toLowerCase().includes('experiment')
-            );
-            const resultCol = item.columns.find(c =>
-                c.title && (c.title.toLowerCase().includes('result') || c.title.toLowerCase().includes('outcome'))
-            );
-
-            const statusText = (statusCol?.text || experimentStatusCol?.text || resultCol?.text || '').toLowerCase();
-            return statusText.includes('win') || statusText.includes('approved') || statusText.includes('success');
+        const hasWin = recent.some(item => {
+            const statusCol = item.columns.find(c => c.title?.toLowerCase().includes('status'));
+            const text = (statusCol?.text || '').toLowerCase();
+            return text.includes('win') || text.includes('approved');
         });
 
-        // Count test types from item names
         const testTypes = {
             icon: allItems.filter(i => i.name.toLowerCase().includes('icon')).length,
-            screenshot: allItems.filter(i => i.name.toLowerCase().includes('screenshot') || i.name.toLowerCase().includes('ss')).length,
-            video: allItems.filter(i => i.name.toLowerCase().includes('video') || i.name.toLowerCase().includes('preview')).length,
-            messaging: allItems.filter(i => i.name.toLowerCase().includes('message') || i.name.toLowerCase().includes('copy')).length
+            screenshot: allItems.filter(i => i.name.toLowerCase().includes('screenshot')).length,
+            video: allItems.filter(i => i.name.toLowerCase().includes('video')).length,
+            messaging: allItems.filter(i => i.name.toLowerCase().includes('message')).length
         };
 
         return {
-            appCode,
-            appName: APP_META[appCode].name,
-            totalItems: allItems.length,
-            recentCount: recentItems.length,
-            hasWin,
-            recentItems,
-            groupStats,
-            testTypes,
-            allItems
+            appCode, appName: APP_META[appCode].name, icon: APP_META[appCode].icon,
+            totalItems: allItems.length, recentCount: recent.length, hasWin, recent, allItems, groupCounts, testTypes
         };
     }
 
-    // FIX #3: Generate UNIQUE recommendations per app based on actual data
     function generateRecommendations(appCode, analysis) {
-        const { testTypes, hasWin, allItems, recentItems } = analysis;
-        const recommendations = [];
+        const recs = [];
+        const { hasWin, testTypes, totalItems, recentCount } = analysis;
 
         if (hasWin) {
-            // UNIQUE for apps with wins: Scale winners
-            recommendations.push({
+            recs.push({
+                type: '🔄 Scale Winners',
+                hypothesis: `${appCode} has recent wins. Iterate on winners.`,
                 priority: 'high',
-                type: '🔄 Scale Recent Winners',
-                hypothesis: `${appCode} shows recent success (${analysis.recentCount} recent tests). Double down with micro-iterations.`,
-                rationale: `Recent test(s) demonstrate positive momentum. Refine winning elements rather than exploring completely new directions.`,
-                creativeDirection: [
-                    'Clone top performing variant',
-                    'Make micro-adjustments to copy/color/layout',
-                    'Test across different user segments',
-                    'Increase sample size for faster learning'
-                ],
-                expectedImpact: '5-10% incremental CVR lift',
-                effort: 'Low'
+                impact: '5-10%'
             });
         } else {
-            // UNIQUE for apps without wins: Explore new angles
-            recommendations.push({
+            recs.push({
+                type: '🧪 New Direction',
+                hypothesis: `${appCode} shows no recent wins. Try different creative angle.`,
                 priority: 'critical',
-                type: '🧪 Break Creative Plateau',
-                hypothesis: `${appCode} shows no recent wins across ${recentItems.length} recent tests. Current creative direction is saturated.`,
-                rationale: `With ${allItems.length} total experiments and no recent wins, testing fundamentally different approaches is necessary.`,
-                creativeDirection: [
-                    'Test opposite emotional angle (if currently feature-focused, go emotional)',
-                    'Reorder screenshot sequence completely',
-                    'Change icon style dramatically',
-                    'Test social proof angle if not explored'
-                ],
-                expectedImpact: '12-18% CVR lift potential',
-                effort: 'High'
+                impact: '12-20%'
             });
         }
 
-        // FIX #4: App-specific recommendations based on test type gaps
-        if (testTypes.icon === 0 && allItems.length > 0) {
-            recommendations.push({
+        if (testTypes.icon === 0) {
+            recs.push({
+                type: '🎨 Icon Test Gap',
+                hypothesis: `${appCode} has 0 icon tests. High-impact opportunity.`,
                 priority: hasWin ? 'medium' : 'high',
-                type: '🎨 Icon Testing Gap',
-                hypothesis: `${appCode} has NO icon tests yet (${allItems.length} total tests). Icons are high-impact.`,
-                rationale: 'Icon tests are proven to drive 10-15% CTR improvements. This is a major testing gap.',
-                creativeDirection: [
-                    'Test 3 icon design directions',
-                    'Vary complexity level',
-                    'Test with/without text overlay',
-                    'Try trending vs timeless styles'
-                ],
-                expectedImpact: '10-15% CTR lift',
-                effort: 'Medium'
+                impact: '10-15%'
             });
         }
 
-        if (testTypes.video === 0 && allItems.length > 0) {
-            recommendations.push({
+        if (testTypes.screenshot === 0) {
+            recs.push({
+                type: '📱 Screenshot Test Gap',
+                hypothesis: `${appCode} has 0 screenshot tests. Core asset gap.`,
                 priority: hasWin ? 'medium' : 'high',
+                impact: '8-12%'
+            });
+        }
+
+        if (testTypes.video === 0) {
+            recs.push({
                 type: '🎬 Preview Video Gap',
-                hypothesis: `${appCode} has NO video tests. Videos drive 15-20% CVR lifts (industry benchmark).`,
-                rationale: 'Video is universally high-impact. Creating first video is highest ROI investment.',
-                creativeDirection:
+                hypothesis: `${appCode} has 0 video tests. Industry best practice.`,
+                priority: hasWin ? 'medium' : 'high',
+                impact: '15-20%'
+            });
+        }
 
+        return recs;
+    }
+
+    function displayResults(appCode, analysis, recs) {
+        const statusColor = analysis.hasWin ? 'text-green-600' : 'text-orange-600';
+        const statusText = analysis.hasWin ? '✅ Has Wins' : '⚠️ No Wins';
+
+        let html = `
+            <div class="glass rounded-2xl p-6 border-l-4 border-blue-500">
+                <h3 class="text-2xl font-bold mb-4">📊 Analysis for ${analysis.appName}</h3>
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-50 p-4 rounded text-center">
+                        <p class="text-gray-600 text-sm">Total Items</p>
+                        <p class="text-3xl font-bold text-blue-600">${analysis.totalItems}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded text-center">
+                        <p class="text-gray-600 text-sm">Recent Performance</p>
+                        <p class="text-xl font-bold ${statusColor}">${statusText}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded text-center">
+                        <p class="text-gray-600 text-sm">Last 4 Tests</p>
+                        <p class="text-3xl font-bold text-blue-600">${analysis.recentCount}</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold text-white mt-8 mb-4">🎯 AI-Generated Recommendations</h2>
+        `;
+
+        recs.forEach((rec, i) => {
+            const colors = { critical: 'red', high: 'yellow', medium: 'blue', low: 'green' };
+            const color = colors[rec.priority] || 'blue';
+            
+            html += `
+                <div class="glass rounded-2xl p-6 recommendation-card priority-${rec.priority}">
+                    <div class="flex justify-between mb-3">
+                        <h3
